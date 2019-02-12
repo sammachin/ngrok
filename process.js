@@ -31,6 +31,7 @@ async function startProcess (opts) {
 	const start = ['start', '--none', '--log=stdout'];
 	if (opts.region) start.push('--region=' + opts.region);
 	if (opts.configPath) start.push('--config=' + opts.configPath);
+	if (opts.authtoken) start.push('--authtoken=' + opts.authtoken);
 	if (opts.binPath) dir = opts.binPath(dir);
 	
 	const ngrok = spawn(bin, start, {cwd: dir});
@@ -86,36 +87,10 @@ function killProcess ()  {
 	});
 }
 
-/**
- * @param {string | INgrokOptions} optsOrToken
- */
-async function setAuthtoken (optsOrToken) {
-	const isOpts = typeof optsOrToken !== 'string'
-	const opts = isOpts ? optsOrToken : {}
-	const token = isOpts ? opts.authtoken : optsOrToken
 
-	const authtoken = ['authtoken', token];
-	if (opts.configPath) authtoken.push('--config=' + opts.configPath);
-
-	let dir = defaultDir;
-	if (opts.binPath) dir = opts.binPath(dir)
-	const ngrok = spawn(bin, authtoken, {cwd: dir});
-
-	const killed = new Promise((resolve, reject) => {
-		ngrok.stdout.once('data', () => resolve());
-		ngrok.stderr.once('data', () => reject(new Error('cant set authtoken')));
-	});
-
-	try {
-		return await killed;
-	}
-	finally {
-		ngrok.kill();
-	}
-}
 
 module.exports = {
 	getProcess,
-	killProcess,
-	setAuthtoken
+	killProcess
+	
 };
